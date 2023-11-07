@@ -1,0 +1,134 @@
+
+MC_code.py Documentation
+
+Author: Mauricio Gonzalez
+Institute: Universidad Tecnica Federico Santa Maria
+
+This script is used to simulate stellar populations and determine their mass distributions, ages, main sequence lifetimes, and types of stellar remnants they become after the main sequence.
+
+Functions:
+
+1. kroupa_imf(number_of_stars):
+
+    Simulates a distribution of stellar masses based on the Kroupa Initial Mass Function (IMF).
+    The Kroupa IMF (Kroupa et. al 2000) is a widely accepted model in astrophysics that describes the distribution of
+    stellar masses in a newly formed population. The function is piecewise, approximating the mass
+    distribution as a broken power law with three distinct segments, each with its own slope.
+
+    The mass distribution is divided into three ranges:
+    - For stars with masses between 0.01 and 0.08 solar masses, the power-law exponent is 0.3.
+    - For stars with masses between 0.08 and 0.50 solar masses, the power-law exponent is 1.3.
+    - For stars with masses greater than 0.50 solar masses, the power-law exponent is 2.3.
+
+    The function generates a specified number of stellar masses, randomly distributed according to
+    these power-law segments. It returns a numpy array containing the simulated masses, allowing
+    for the study of mass distribution in a hypothetical stellar population.
+
+    Parameters:
+    - number_of_stars (int): The number of stellar masses to simulate.
+
+    Returns:
+    - np.array: A numpy array of simulated stellar masses, with each mass expressed in units of solar masses (Msun).
+
+    The returned array is not sorted and includes stellar masses across the full range of the IMF, providing
+    a realistic sample for further astronomical analysis or modeling.
+
+
+
+2. assign_birth_times(number_of_stars,max_age):
+
+    Assign a birth time to each star with a uniform distribution between 0 and max_age yr.
+
+    Parameters:
+    number_of_stars (int): The number of stars to assign birth times to.
+    max_age (float): The max star age.
+
+    Returns:
+    np.array: An array of birth times for the stars.
+
+
+3. main_sequence_lifetime(mass,birth_time,max_age):
+
+    Calculate the main sequence lifetime of a star based on its mass.
+    The main sequence lifetime is approximated by the mass-luminosity relation:
+    (lifetime ~ mass / luminosity), and luminosity ~ mass^3.5 for stars less than 55 Msun,
+    for more massive stars, a different relation would be needed, but for simplicity,
+    we assume all stars are below this threshold.
+
+    Parameters:
+    mass (float): The mass of the star in solar masses.
+    birth_time (float): Time elpase since star formation
+
+    Returns:
+    float: The main sequence lifetime of the star in Gyr.
+    bool: If the star is i the main sequence (True) or not (False)
+
+
+4. make_star_dataframe(num_of_star, max_age):
+
+    Generate a pandas DataFrame of stars where each row represents a star and each column represents an attribute of the star.
+    
+    Parameters:
+    -num_of_star (int): Total number of stars.
+    -max_age (float): The max star age in Gyr.
+    
+    Returns:
+    -pandas.DataFrame: A DataFrame where each row is a star and the columns are:
+
+                       'mass', 'age', 'main_sequence_lifetime', 'ms_state', 'stellar_remnant'.
+                       mass (float): Star mass in Msun.
+                       age (float): Star age in Gyr.
+                       main_sequence_lifetime (float): Time in the main sequence in Gyr.
+                       ms_state (bool): If the star is in the ms set to True, if not, False.
+                       stellar_remnant (bool): If the star is a stellar remnant set to True, otherwise, False.
+
+
+5. determine_stellar_remnant(initial_mass):
+   
+    Determine the type of stellar remnant a star will become based on its initial mass.
+
+    This function uses the initial mass of a star to predict whether the star will end 
+    its life as a White Dwarf, Neutron Star, or Black Hole, or if the final remnant is 
+    unknown due to mass constraints. It utilizes relations from published astrophysical 
+    studies to calculate the expected final mass of the remnant for White Dwarfs and 
+    Neutron Stars, and uses mass ranges to determine potential Black Holes.
+
+    Parameters:
+    - initial_mass (float): The initial mass of the star in solar masses.
+
+    Returns:
+    - remnant_type (str): The type of stellar remnant ('White Dwarf', 'Neutron Star', 
+                          'Black Hole', or 'Unknown').
+    - final_mass (float or None): The calculated final mass of the remnant, or None if 
+                                  the remnant type is 'Unknown'.
+
+    The function internally defines three helper functions for the calculations:
+    - white_dwarf_ifmr: Calculates the final mass for White Dwarfs using the 
+                        initial-final mass relation from Kalirai et al. (2008).
+    - neutron_star_ifmr: Calculates the final mass for Neutron Stars using branching 
+                         logic based on mass ranges and relations from Raithel et al. (2018).
+    - black_hole_ifmr: Determines potential Black Hole masses using mass ranges and 
+                       relations for core implosion and factors in the ejection fraction.
+
+    The star's fate is determined by comparing its initial mass against the defined mass 
+    ranges for each type of remnant. If the star's mass does not fall within any range, 
+    the function defaults to 'Unknown'.
+
+
+6. add_stellar_remnant_info(row):
+
+   Function to apply to DataFrame rows that adds stellar remnant information.
+
+     Parameters: 
+     -row - a row of the DataFrame representing a star.
+
+     Returns: 
+     -A tuple with the remnant type and final mass, or 'Main Sequence' and initial mass if not a remnant.
+
+Variables:
+
+- num_of_star: The number of stars to simulate (list).
+- max_star_age: The maximum age for the stars in the simulation in Gyrs (float).
+
+
+Note: The actual implementation may shuffle stellar masses and ages, calculate main sequence lifetimes based on mass, and determine if a star is a stellar remnant within the main function of the script.
